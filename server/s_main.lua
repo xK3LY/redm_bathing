@@ -1,57 +1,63 @@
 BathingSessions = {}
 
-Citizen.CreateThread(function() --// link own callback system
-    --[[RegisterServerCallback("rdr-bathing:canEnterBath", function(source, cb, town)
-        local player = GetPlayerFromId(source)
-        
+RegisterServerEvent("rdr-bathing:canEnterBath")
+AddEventHandler("rdr-bathing:canEnterBath", function(town)
+    local _source = source
+    TriggerEvent("vorp:getCharacter", _source, function(user)
+        local currentMoney = user.money
+
         if not BathingSessions[town] then
-            if player.getAccountMoney("money") >= Globals.Price then
-                player.removeAccountMoney("money", Globals.Price)
-
-                BathingSessions[town] = source
-
-                cb(true)
-                return
+            if currentMoney >= Globals.Price then
+              TriggerEvent("vorp:removeMoney", _source, 0, 1.00)
+                BathingSessions[town] = _source
+                TriggerClientEvent("rdr-bathing:StartBath", _source, town)
             else
-                player.postToastNotification("bath_house", "Nie stać cię panoćku na kąpiel w naszej łaźni!", "")
+                print("NOTIFICATION HERE")
             end
-        else 
-            player.postToastNotification("bath_house", "Łaźnia jest zajęta!", "Wróć za jakiś czas.")
+        else
+            print("NOTIFICATION HERE")
         end
 
-        cb(false)
     end)
+end)
 
-    RegisterServerCallback("rdr-bathing:canBuyDeluxeBath", function(source, cb, town)
-        if BathingSessions[town] == source then
-            local player = GetPlayerFromId(source)
 
-            if player.getAccountMoney("money") >= Globals.Deluxe then
-                player.removeAccountMoney("money", Globals.Deluxe)
+RegisterServerEvent("rdr-bathing:canEnterDeluxeBath")
+AddEventHandler("rdr-bathing:canEnterDeluxeBath", function(p1 , p2 , p3)
+    local _source = source
+    if BathingSessions[p2] == _source then
 
-                cb(true)
-                return
+        TriggerEvent("vorp:getCharacter", _source, function(user)
+            local currentMoney = user.money
+              TriggerEvent("vorp:removeMoney", _source, 0, 5.00)
+            if currentMoney >= Globals.Deluxe then
+               
+                TriggerClientEvent("rdr-bathing:StartDeluxeBath", _source , p1 , p2 , p3)
             else
-                player.postToastNotification("bath_house", "Nie stać cię panoćku na luksusową kąpiel!", "")
+                print("NOTIFICATION HERE")
+				TriggerClientEvent("rdr-bathing:HideDeluxePrompt", _source)
             end
-        end
 
-        cb(false)
-    end)]]
 
-    RegisterServerEvent("rdr-bathing:setBathAsFree")
-    AddEventHandler("rdr-bathing:setBathAsFree", function(town)
-        if BathingSessions[town] == source then
+        end)
+    end
+
+end)
+
+
+RegisterServerEvent("rdr-bathing:setBathAsFree")
+AddEventHandler("rdr-bathing:setBathAsFree", function(town)
+    if BathingSessions[town] == source then
+        BathingSessions[town] = nil
+    end
+end)
+
+AddEventHandler('playerDropped', function()
+    for town,player in pairs(BathingSessions) do
+        if player == source then
             BathingSessions[town] = nil
         end
-    end)
-
-    AddEventHandler('playerDropped', function()
-        for town,player in pairs(BathingSessions) do
-            if player == source then
-                BathingSessions[town] = nil
-            end
-        end	 
-    end)    
+    end
 end)
+
 

@@ -1,4 +1,50 @@
 BathingPed = nil
+local inbath = false 
+
+local othercontrols = 
+{
+    ["G"] = 0x760A9C6F,
+    ["F"] = 0xB2F377E8,
+}
+
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(10)
+		local playerCoords = GetEntityCoords(PlayerPedId())
+		if GetDistanceBetweenCoords(playerCoords, -319.0, 762.52, 117.43, true) < 1 then
+            drawtext("Press G To Exit", 0.15, 0.13, 0.3, 0.3, true, 255, 255, 255, 255, true, 10000)
+			if IsControlJustReleased(0, othercontrols["G"]) then
+				SetEntityCoords(PlayerPedId(),-320.5,762.26,116.43)
+			end
+		end
+	end
+end)
+
+Citizen.CreateThread(function()     --Saint D  bath exit 
+    while true do
+        Citizen.Wait(10)
+        local playerCoords = GetEntityCoords(PlayerPedId())
+        if GetDistanceBetweenCoords(playerCoords, 2631.26, -1223.82, 59.64, true) < 1 then
+            drawtext("Press G To Exit", 0.15, 0.13, 0.3, 0.3, true, 255, 255, 255, 255, true, 10000)
+            if IsControlJustReleased(0, othercontrols["G"]) then
+                SetEntityCoords(PlayerPedId(),2632.84, -1223.89, 59.64)
+            end
+        end
+    end
+end)
+
+function drawtext(str, x, y, w, h, enableShadow, col1, col2, col3, a, centre)
+    local str = CreateVarString(10, "LITERAL_STRING", str, Citizen.ResultAsLong())
+    SetTextScale(w, h)
+    SetTextColor(math.floor(col1), math.floor(col2), math.floor(col3), math.floor(a))
+    SetTextCentre(centre)
+    if enableShadow then 
+        SetTextDropshadow(1, 0, 0, 0, 255)
+    end
+    Citizen.InvokeNative(0xADA9255D, 10);
+    DisplayText(str, x, y)
+end
+
 
 Citizen.CreateThread(function()
 	CreateBlips()
@@ -38,8 +84,9 @@ GetClosestConsumer = function()
 	return nil
 end
 
---[[ Functions ]]--
-EnterBathing = function(town)
+RegisterNetEvent('rdr-bathing:StartBath')
+AddEventHandler('rdr-bathing:StartBath', function(town)
+	inbath = true 
 	if Config.BathingZones[town] then
 		SetCurrentPedWeapon(PlayerPedId(), `WEAPON_UNARMED`, true, 0, true, true)
 
@@ -96,7 +143,12 @@ EnterBathing = function(town)
 				while GetTaskMoveNetworkState(PlayerPedId()) ~= "Scrub_Idle" do
 					RequestTaskMoveNetworkStateTransition(PlayerPedId(), "Scrub_Idle");
 					RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or rag, "Scrub_Idle");
-
+					ClearPedEnvDirt(PlayerPedId())
+					ClearPedBloodDamage(PlayerPedId())
+					N_0xe3144b932dfdff65(PlayerPedId(), 0.0, -1, 1, 1)
+					ClearPedDamageDecalByZone(PlayerPedId(), 10, "ALL")
+					Citizen.InvokeNative(0x7F5D88333EE8A86F, PlayerPedId(), 1)
+					Citizen.InvokeNative(0x9C720776DAA43E7E, PlayerPedId())
 					Citizen.Wait(200)
 				end
 
@@ -110,7 +162,12 @@ EnterBathing = function(town)
 
 						if GetTaskMoveNetworkState(PlayerPedId()) ~= Config.BathingModes[bathMode].transition then
 							SetCurrentCleaniest(rag, 0.0)
-
+							ClearPedEnvDirt(PlayerPedId())
+							ClearPedBloodDamage(PlayerPedId())
+							N_0xe3144b932dfdff65(PlayerPedId(), 0.0, -1, 1, 1)
+							ClearPedDamageDecalByZone(PlayerPedId(), 10, "ALL")
+							Citizen.InvokeNative(0x7F5D88333EE8A86F, PlayerPedId(), 1)
+							Citizen.InvokeNative(0x9C720776DAA43E7E, PlayerPedId())
 							RequestTaskMoveNetworkStateTransition(PlayerPedId(), Config.BathingModes[bathMode].transition);
 							RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or rag, Config.BathingModes[bathMode].transition);					
 						end
@@ -126,13 +183,12 @@ EnterBathing = function(town)
 							if bathMode+1 > #Config.BathingModes then
 								--GAME.PostToastNotification("bath_house", "Jesteś już czysty/a jak łza!", "Możesz opuścić wannę lub zostać i się odpręyć w gorącej wodzie.")  // link own notifications
 								TogglePrompts({ "REQUEST_DELUXE_BATHING", "SCRUB" }, false)							
-								
 								ClearPedEnvDirt(PlayerPedId())
 								ClearPedBloodDamage(PlayerPedId())
 								N_0xe3144b932dfdff65(PlayerPedId(), 0.0, -1, 1, 1)
 								ClearPedDamageDecalByZone(PlayerPedId(), 10, "ALL")
 								Citizen.InvokeNative(0x7F5D88333EE8A86F, PlayerPedId(), 1)
-
+                                Citizen.InvokeNative(0x9C720776DAA43E7E, PlayerPedId())
 								bathMode = #Config.BathingModes+1
 								if DoesEntityExist(BathingPed) then
 									Citizen.Wait(750) ExitPremiumBath(animscene, town, cam, true)
@@ -154,7 +210,12 @@ EnterBathing = function(town)
 					while GetTaskMoveNetworkState(PlayerPedId()) ~= "Scrub_Idle" do
 						RequestTaskMoveNetworkStateTransition(PlayerPedId(), "Scrub_Idle");
 						RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or rag, "Scrub_Idle");
-
+						ClearPedEnvDirt(PlayerPedId())
+						ClearPedBloodDamage(PlayerPedId())
+						N_0xe3144b932dfdff65(PlayerPedId(), 0.0, -1, 1, 1)
+						ClearPedDamageDecalByZone(PlayerPedId(), 10, "ALL")
+						Citizen.InvokeNative(0x7F5D88333EE8A86F, PlayerPedId(), 1)
+						Citizen.InvokeNative(0x9C720776DAA43E7E, PlayerPedId())
 						Citizen.Wait(200)
 					end
 
@@ -171,18 +232,50 @@ EnterBathing = function(town)
 
 			if IsPromptCompleted("REQUEST_DELUXE_BATHING") then
 				Action("REQUEST_DELUXE_BATHING", animscene, town, cam) 
+				ClearPedEnvDirt(PlayerPedId())
+				ClearPedBloodDamage(PlayerPedId())
+				N_0xe3144b932dfdff65(PlayerPedId(), 0.0, -1, 1, 1)
+				ClearPedDamageDecalByZone(PlayerPedId(), 10, "ALL")
+				Citizen.InvokeNative(0x7F5D88333EE8A86F, PlayerPedId(), 1)
+				Citizen.InvokeNative(0x9C720776DAA43E7E, PlayerPedId())
 			end
 
 			if IsPromptCompleted("STOP_BATHING") then
 				Action("STOP_BATHING", animscene, town, cam)
+				ClearPedEnvDirt(PlayerPedId())
+				ClearPedBloodDamage(PlayerPedId())
+				N_0xe3144b932dfdff65(PlayerPedId(), 0.0, -1, 1, 1)
+				ClearPedDamageDecalByZone(PlayerPedId(), 10, "ALL")
+				Citizen.InvokeNative(0x7F5D88333EE8A86F, PlayerPedId(), 1)
+				Citizen.InvokeNative(0x9C720776DAA43E7E, PlayerPedId())
 			end
 
 			Citizen.Wait(10)
 		end
 	end
-end
+end)
+
+RegisterCommand("exitbath", function(source, args)
+	if inbath then 
+		RenderScriptCams(false, false, 0, true, false, 0)
+		DestroyCam(cam) 
+		ExecuteCommand('rc')
+		ExecuteCommand('sa')
+		SetEntityCoords(PlayerPedId(),-320.5,762.26,116.43)
+		UnloadAllStreamings()
+		TriggerMusicEvent("MG_BATHING_STOP")
+		TriggerServerEvent("rdr-bathing:setBathAsFree", town)
+		TogglePrompts("ALL", false)
+		N_0x69d65e89ffd72313(false, false)
+		Citizen.InvokeNative(0x704C908E9C405136, PlayerPedId())
+		SetPedCanLegIk(PlayerPedId(), true)
+		SetPedLegIkMode(PlayerPedId(), 2)
+		inbath = false 
+	end
+end)
 
 ExitBathing = function(animscene, town, cam)
+	inbath = false 
 	if DoesEntityExist(BathingPed) then
 		ExitPremiumBath(animscene, town, cam)
 		return
@@ -223,46 +316,79 @@ ExitBathing = function(animscene, town, cam)
 	SetPedCanLegIk(PlayerPedId(), true)
 	SetPedLegIkMode(PlayerPedId(), 2)
 end
+RegisterNetEvent('rdr-bathing:StartDeluxeBath')
+AddEventHandler('rdr-bathing:StartDeluxeBath', function(animscene, town, cam)
+	if not IsPedMale(PlayerPedId()) then
+		if not Citizen.InvokeNative(0x25557E324489393C, animscene) then return end
+		Citizen.InvokeNative(0x84EEDB2C6E650000, animscene) --// _DELETE_ANIM_SCENE
 
-EnterPremiumBath = function(animscene, town, cam)
-	--TriggerServerCallback("rdr-bathing:canBuyDeluxeBath", function(cb) // link own callback system
-		--if cb then 
-			if not Citizen.InvokeNative(0x25557E324489393C, animscene) then return end
-			Citizen.InvokeNative(0x84EEDB2C6E650000, animscene) --// _DELETE_ANIM_SCENE
+		local animscene = Citizen.InvokeNative(0x1FCA98E33C1437B3, Config.BathingZones[town].dict, 0,  "s_deluxe_intro", false, true)
+		SetAnimSceneEntity(animscene, "ARTHUR", PlayerPedId(), 0)
+		SetAnimSceneEntity(animscene, "Door", N_0xf7424890e4a094c0(Config.BathingZones[town].door, 0), 0)
+		
+		LoadModel(Config.BathingZones[town].guy)
+		BathingPed = CreatePed(Config.BathingZones[town].guy, GetEntityCoords(PlayerPedId())-vector3(0.0, 0.0, -5.0), 0.0, false, false, true, true)
+		table.insert(Config.CreatedEntries, { type = "PED", handle = BathingPed })
+		Citizen.InvokeNative(0x283978A15512B2FE, BathingPed, true)
+		SetAnimSceneEntity(animscene, "Female", BathingPed, 0)
+		SetModelAsNoLongerNeeded(Config.BathingZones[town].guy)
 
-			local animscene = Citizen.InvokeNative(0x1FCA98E33C1437B3, Config.BathingZones[town].dict, 0,  "s_deluxe_intro", false, true)
-			SetAnimSceneEntity(animscene, "ARTHUR", PlayerPedId(), 0)
-			SetAnimSceneEntity(animscene, "Door", N_0xf7424890e4a094c0(Config.BathingZones[town].door, 0), 0)
+		LoadAnimScene(animscene)  
+		while not Citizen.InvokeNative(0x477122B8D05E7968, animscene, 1, 0) do Citizen.Wait(10) end --// _IS_ANIM_SCENE_LOADED
+		PlaySoundFrontend("BATHING_DOOR_KNOCK_MASTER", 0, true, 0)
+		Citizen.Wait(1000)
+		StartAnimScene(animscene)
+
+		RenderScriptCams(false, false, 0, true, false, 0)
+
+		while not Citizen.InvokeNative(0xD8254CB2C586412B, animscene, true) do Citizen.Wait(10) end --// _IS_ANIM_SCENE_FINISHED
+		Citizen.InvokeNative(0x84EEDB2C6E650000, animscene) --// _DELETE_ANIM_SCENE
+
+		TriggerEvent("rdr-bathing:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { PlayerPedId(), "Script_Mini_Game_Bathing_Deluxe", `CLIPSET@MINI_GAMES@BATHING@DELUXE@ARTHUR`, `DEFAULT`, "BATHING" })
+		TriggerEvent("rdr-bathing:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { BathingPed, "Script_Mini_Game_Bathing_Deluxe", `CLIPSET@MINI_GAMES@BATHING@DELUXE@MAID`, `DEFAULT`, "BATHING" })	
 			
-			LoadModel(Config.BathingZones[town].lady)
-			BathingPed = CreatePed(Config.BathingZones[town].lady, GetEntityCoords(PlayerPedId())-vector3(0.0, 0.0, -5.0), 0.0, false, false, true, true)
-			table.insert(Config.CreatedEntries, { type = "PED", handle = BathingPed })
-			Citizen.InvokeNative(0x283978A15512B2FE, BathingPed, true)
-			SetAnimSceneEntity(animscene, "Female", BathingPed, 0)
-			SetModelAsNoLongerNeeded(Config.BathingZones[town].lady)
+		TogglePrompts({ "STOP_BATHING", "SCRUB" }, true)
 
-			LoadAnimScene(animscene)  
-			while not Citizen.InvokeNative(0x477122B8D05E7968, animscene, 1, 0) do Citizen.Wait(10) end --// _IS_ANIM_SCENE_LOADED
-			PlaySoundFrontend("BATHING_DOOR_KNOCK_MASTER", 0, true, 0)
-			Citizen.Wait(1000)
-			StartAnimScene(animscene)
+		RenderScriptCams(true, true, 0, true, false, 0)
+	else
+		if not Citizen.InvokeNative(0x25557E324489393C, animscene) then return end
+		Citizen.InvokeNative(0x84EEDB2C6E650000, animscene) --// _DELETE_ANIM_SCENE
 
-			RenderScriptCams(false, false, 0, true, false, 0)
+		local animscene = Citizen.InvokeNative(0x1FCA98E33C1437B3, Config.BathingZones[town].dict, 0,  "s_deluxe_intro", false, true)
+		SetAnimSceneEntity(animscene, "ARTHUR", PlayerPedId(), 0)
+		SetAnimSceneEntity(animscene, "Door", N_0xf7424890e4a094c0(Config.BathingZones[town].door, 0), 0)
+		
+		LoadModel(Config.BathingZones[town].lady)
+		BathingPed = CreatePed(Config.BathingZones[town].lady, GetEntityCoords(PlayerPedId())-vector3(0.0, 0.0, -5.0), 0.0, false, false, true, true)
+		table.insert(Config.CreatedEntries, { type = "PED", handle = BathingPed })
+		Citizen.InvokeNative(0x283978A15512B2FE, BathingPed, true)
+		SetAnimSceneEntity(animscene, "Female", BathingPed, 0)
+		SetModelAsNoLongerNeeded(Config.BathingZones[town].lady)
 
-			while not Citizen.InvokeNative(0xD8254CB2C586412B, animscene, true) do Citizen.Wait(10) end --// _IS_ANIM_SCENE_FINISHED
-			Citizen.InvokeNative(0x84EEDB2C6E650000, animscene) --// _DELETE_ANIM_SCENE
+		LoadAnimScene(animscene)  
+		while not Citizen.InvokeNative(0x477122B8D05E7968, animscene, 1, 0) do Citizen.Wait(10) end --// _IS_ANIM_SCENE_LOADED
+		PlaySoundFrontend("BATHING_DOOR_KNOCK_MASTER", 0, true, 0)
+		Citizen.Wait(1000)
+		StartAnimScene(animscene)
 
-			TriggerEvent("rdr-bathing:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { PlayerPedId(), "Script_Mini_Game_Bathing_Deluxe", `CLIPSET@MINI_GAMES@BATHING@DELUXE@ARTHUR`, `DEFAULT`, "BATHING" })
-			TriggerEvent("rdr-bathing:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { BathingPed, "Script_Mini_Game_Bathing_Deluxe", `CLIPSET@MINI_GAMES@BATHING@DELUXE@MAID`, `DEFAULT`, "BATHING" })	
-				
-			TogglePrompts({ "STOP_BATHING", "SCRUB" }, true)
+		RenderScriptCams(false, false, 0, true, false, 0)
 
-			RenderScriptCams(true, true, 0, true, false, 0)
-		--else
-		--	TogglePrompts({ "REQUEST_DELUXE_BATHING" }, false)
-		--end
-	--end, town)
-end
+		while not Citizen.InvokeNative(0xD8254CB2C586412B, animscene, true) do Citizen.Wait(10) end --// _IS_ANIM_SCENE_FINISHED
+		Citizen.InvokeNative(0x84EEDB2C6E650000, animscene) --// _DELETE_ANIM_SCENE
+
+		TriggerEvent("rdr-bathing:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { PlayerPedId(), "Script_Mini_Game_Bathing_Deluxe", `CLIPSET@MINI_GAMES@BATHING@DELUXE@ARTHUR`, `DEFAULT`, "BATHING" })
+		TriggerEvent("rdr-bathing:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { BathingPed, "Script_Mini_Game_Bathing_Deluxe", `CLIPSET@MINI_GAMES@BATHING@DELUXE@MAID`, `DEFAULT`, "BATHING" })	
+			
+		TogglePrompts({ "STOP_BATHING", "SCRUB" }, true)
+
+		RenderScriptCams(true, true, 0, true, false, 0)
+	end
+end)
+
+RegisterNetEvent('rdr-bathing:HideDeluxePrompt')
+AddEventHandler('rdr-bathing:HideDeluxePrompt', function()
+	TogglePrompts({ "REQUEST_DELUXE_BATHING" }, false)
+end)
 
 ExitPremiumBath = function(animscene, town, cam, disableScrub)
 	local animscene = Citizen.InvokeNative(0x1FCA98E33C1437B3, Config.BathingZones[town].dict, 0,  "s_deluxe_outro", false, true)
@@ -279,7 +405,7 @@ ExitPremiumBath = function(animscene, town, cam, disableScrub)
 	while not Citizen.InvokeNative(0xD8254CB2C586412B, animscene, true) do Citizen.Wait(10) end --// _IS_ANIM_SCENE_FINISHED
 
 	TriggerEvent("rdr-bathing:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { PlayerPedId(), "Script_Mini_Game_Bathing_Regular", `CLIPSET@MINI_GAMES@BATHING@REGULAR@ARTHUR`, `DEFAULT`, "BATHING" })
-	TriggerEvent("rdr-bathing:TASK_MOVE_NETWORK_ADVANCED_BY_NAME_WITH_INIT_PARAMS", { rag, "Script_Mini_Game_Bathing_Regular", `CLIPSET@MINI_GAMES@BATHING@REGULAR@RAG`, `DEFAULT`, "BATHING", { Config.BathingZones[town].rag.x, Config.BathingZones[town].rag.y, Config.BathingZones[town].rag.z }, Config.BathingZones[town].rag.w })	
+	--TriggerEvent("rdr-bathing:TASK_MOVE_NETWORK_ADVANCED_BY_NAME_WITH_INIT_PARAMS", { rag, "Script_Mini_Game_Bathing_Regular", `CLIPSET@MINI_GAMES@BATHING@REGULAR@RAG`, `DEFAULT`, "BATHING", { Config.BathingZones[town].rag.x, Config.BathingZones[town].rag.y, Config.BathingZones[town].rag.z }, Config.BathingZones[town].rag.w })	
 		
 	TogglePrompts({ "STOP_BATHING", "SCRUB" }, true)
 	if IsPromptEnabled("SCRUB") and disableScrub then TogglePrompts({ "SCRUB" }, false) end
@@ -323,40 +449,11 @@ UnloadAllStreamings = function()
 end
 
 UndressCharacter = function() --// link own undress logic
-	--[[for index,data in pairs(Config.UndressElements) do
-		TriggerEvent('skinchanger:getSkin', function(skin)
-			if skin[data.category] then
-				Config.DressElements[data.category] = skin[data.category]
-
-				if Config.Special[data.category] and not IsPedMale(PlayerPedId()) then
-					local item = exports["skinchanger"]:GetClothByIndex(data.category, Config.Special[data.category])                                 
-					if item then
-						Citizen.InvokeNative(0x59BD177A1A48600A, PlayerPedId(), data.hash)
-						Citizen.InvokeNative(0xD3A7B003ED343FD9, PlayerPedId(), item.hash, true, item.isMP, false)
-					end
-                else
-                    Citizen.InvokeNative(0xD710A5007C2AC539, PlayerPedId(), data.hash, 0)
-                    Citizen.InvokeNative(0xCC8CA3E88256E58F, PlayerPedId(), 0, 1, 1, 1, 0)
-                end
-
-				Citizen.InvokeNative(0x704C908E9C405136, PlayerPedId())
-            end
-        end)
-    end]]
+	ExecuteCommand('undress')
 end
 
 DressCharacter = function() --// link own dress logic
-	--[[for index,data in pairs(Config.UndressElements) do
-		if Config.DressElements[data.category] then
-			local item = exports["skinchanger"]:GetClothByIndex(data.category, Config.DressElements[data.category])
-			if item then
-				Citizen.InvokeNative(0x704C908E9C405136, PlayerPedId())
-				Citizen.InvokeNative(0x59BD177A1A48600A, PlayerPedId(), data.hash)
-				Citizen.InvokeNative(0xD3A7B003ED343FD9, PlayerPedId(), item.hash, false, item.isMP, false)
-				Config.DressElements[data.category] = nil
-			end
-		end
-    end]]
+	ExecuteCommand('rc')
 end
 
 SetCurrentCleaniest = function(rag, value)
@@ -385,9 +482,9 @@ Action = function(name, p1, p2, p3)
 	TogglePrompts("ALL", false)
 
 	if (name == "START_BATHING") then
-		--TriggerServerCallback("rdr-bathing:canEnterBath", function(cb) if cb then EnterBathing(p1) end end, p1) // link own callback system
+		TriggerServerEvent("rdr-bathing:canEnterBath", p1)
 	elseif (name == "REQUEST_DELUXE_BATHING") then
-		EnterPremiumBath(p1, p2, p3)
+		TriggerServerEvent("rdr-bathing:canEnterDeluxeBath", p1 , p2 , p3)
 	elseif (name == "STOP_BATHING") then
 		ExitBathing(p1, p2, p3)
 	end

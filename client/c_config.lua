@@ -135,12 +135,11 @@ Config.Special = { ["shirts_full"] = 235, ["pants"] = 198 }
 Config.DressElements = {}
 
 Config.Prompts = {
-    { label = ("Skorzystaj z łaźni (%s$)"):format(Globals.Price), id = "START_BATHING" },
+    { label = ("Take a bath(%s$)"):format(Globals.Price), id = "START_BATHING" },
 
-	{ label = "Szoruj", id = "SCRUB", control = `INPUT_CONTEXT_X`, time = 2000 },
-    { label = ("Zamów luksusową kąpiel (%s$)"):format(Globals.Deluxe), id = "REQUEST_DELUXE_BATHING" },
+	{ label = "Wash", id = "SCRUB", control = `INPUT_CONTEXT_X`, time = 2000 },
+    { label = ("Order a luxury bath(%s$)"):format(Globals.Deluxe), id = "REQUEST_DELUXE_BATHING" },
 
-	{ label = "Wyjdź", id = "STOP_BATHING", control = `INPUT_INTERACT_NEG` }
+	{ label = "Exit", id = "STOP_BATHING", control = `INPUT_INTERACT_NEG` }
 }
-
 Config.CreatedEntries = {}
